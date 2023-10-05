@@ -18,6 +18,8 @@ public interface VistaCitasDAO {
     
     public List<VistaCitas> filtrarHoy() throws Exception;
     
+    public List<VistaCitas> filtrarManiana() throws Exception;
+    
     public List<VistaCitas> filtrarSiguientes() throws Exception;
     
     

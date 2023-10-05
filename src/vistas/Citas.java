@@ -100,10 +100,9 @@ public class Citas extends javax.swing.JPanel {
     }
 
     //Metodo para realizar un filtrado de citas del día de hoy
-    private void filtrarCitasHoy() {
+    private void filtrarCitas(List<VistaCitas> vistaCitas) {
         try {
             DefaultTableModel modelo = new DefaultTableModel();
-            List<VistaCitas> vistaCitas = new VistaCitasDAOImpl().filtrarHoy();
 
             String[] columnas = {"ID Cita", "ID Paciente", "Nombre Paciente", "Apellidos", "Fecha", "Hora", "Estado"};
             modelo.setColumnIdentifiers(columnas);
@@ -141,56 +140,6 @@ public class Citas extends javax.swing.JPanel {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        radioCitasSiguientes.setSelected(false);
-
-    }
-
-    //Metodo para realizar un filtrado de citas de mañana en adelante
-    private void filtrarCitasSiguientes() {
-
-        try {
-            DefaultTableModel modelo = new DefaultTableModel();
-            List<VistaCitas> vistaCitas = new VistaCitasDAOImpl().filtrarSiguientes();
-
-            String[] columnas = {"ID Cita", "ID Paciente", "Nombre Paciente", "Apellidos", "Fecha", "Hora", "Estado"};
-            modelo.setColumnIdentifiers(columnas);
-
-            SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE dd-MM-yyyy");
-
-            for (VistaCitas vistaCita : vistaCitas) {
-                String fechaFormateada = "";
-                if (vistaCita.getFechaCitaVista() != null) {
-                    fechaFormateada = dateFormat.format(vistaCita.getFechaCitaVista());
-                }
-
-                String[] renglon = {
-                    String.valueOf(vistaCita.getIdCitaVista()),
-                    String.valueOf(vistaCita.getIdPacienteVista()),
-                    vistaCita.getNombrePacienteVista(),
-                    vistaCita.getApellidosPacienteVista(),
-                    fechaFormateada,
-                    vistaCita.getHoraCitaVista(),
-                    vistaCita.getEstadoCitaVista()
-                };
-
-                modelo.addRow(renglon);
-            }
-
-            tablaCitas.setModel(modelo);
-
-            // Aplicar el TableCellRenderer a la columna "Estado"
-            TableColumn estadoColumn = tablaCitas.getColumnModel().getColumn(6); // Ajusta el índice de columna si es diferente
-            estadoColumn.setCellRenderer(new ColorRenderer());
-
-            packColumn(tablaCitas, 4);
-            packColumn(tablaCitas, 3);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        radioCitasHoy.setSelected(false);
 
     }
 
@@ -211,6 +160,7 @@ public class Citas extends javax.swing.JPanel {
         btnreagendar = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         radioCitasHoy = new javax.swing.JRadioButton();
+        radioCitasManiana = new javax.swing.JRadioButton();
         radioCitasSiguientes = new javax.swing.JRadioButton();
 
         setBackground(new java.awt.Color(255, 255, 255));
@@ -304,7 +254,14 @@ public class Citas extends javax.swing.JPanel {
             }
         });
 
-        radioCitasSiguientes.setText("Citas de mañana y siguientes");
+        radioCitasManiana.setText("Citas de mañana");
+        radioCitasManiana.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioCitasManianaActionPerformed(evt);
+            }
+        });
+
+        radioCitasSiguientes.setText("Citas siguientes");
         radioCitasSiguientes.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioCitasSiguientesActionPerformed(evt);
@@ -333,18 +290,22 @@ public class Citas extends javax.swing.JPanel {
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(radioCitasHoy)
                         .addGap(18, 18, 18)
-                        .addComponent(radioCitasSiguientes)))
+                        .addComponent(radioCitasManiana)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(radioCitasSiguientes)
+                        .addGap(9, 9, 9)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addComponent(jLabel1)
-                .addGap(7, 7, 7)
+                .addGap(9, 9, 9)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(radioCitasHoy)
+                    .addComponent(radioCitasManiana)
                     .addComponent(radioCitasSiguientes))
-                .addGap(31, 31, 31)
+                .addGap(29, 29, 29)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 382, Short.MAX_VALUE)
                 .addGap(26, 26, 26)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -476,15 +437,66 @@ public class Citas extends javax.swing.JPanel {
     }//GEN-LAST:event_btnreagendarActionPerformed
 
     private void radioCitasHoyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioCitasHoyActionPerformed
-        filtrarCitasHoy();
+
+        try {
+            List<VistaCitas> vistaCitas = new VistaCitasDAOImpl().filtrarHoy();
+            if (vistaCitas == null || vistaCitas.isEmpty()) {
+                radioCitasHoy.setSelected(false);
+                Dashboard.mostrarMensajeAviso("No tiene citas programadas para el día de hoy");
+                return;
+            }
+
+            radioCitasManiana.setSelected(false);
+            radioCitasSiguientes.setSelected(false);
+
+            filtrarCitas(vistaCitas);
+        } catch (Exception ex) {
+            Logger.getLogger(Citas.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_radioCitasHoyActionPerformed
 
     private void radioCitasHoyKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_radioCitasHoyKeyPressed
 
     }//GEN-LAST:event_radioCitasHoyKeyPressed
 
+    private void radioCitasManianaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioCitasManianaActionPerformed
+
+        try {
+            List<VistaCitas> vistaCitas = new VistaCitasDAOImpl().filtrarManiana();
+            if (vistaCitas == null || vistaCitas.isEmpty()) {
+                radioCitasManiana.setSelected(false);
+                Dashboard.mostrarMensajeAviso("No tiene citas programadas para el día de mañana");
+                return;
+            }
+
+            radioCitasHoy.setSelected(false);
+            radioCitasSiguientes.setSelected(false);
+
+            filtrarCitas(vistaCitas);
+        } catch (Exception ex) {
+            Logger.getLogger(Citas.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }//GEN-LAST:event_radioCitasManianaActionPerformed
+
     private void radioCitasSiguientesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioCitasSiguientesActionPerformed
-        filtrarCitasSiguientes();
+
+        try {
+            List<VistaCitas> vistaCitas = new VistaCitasDAOImpl().filtrarSiguientes();
+            if (vistaCitas == null || vistaCitas.isEmpty()) {
+                radioCitasSiguientes.setSelected(false);
+                Dashboard.mostrarMensajeAviso("No tiene citas programadas para los días siguientes");
+                return;
+            }
+
+            radioCitasHoy.setSelected(false);
+            radioCitasManiana.setSelected(false);
+
+            filtrarCitas(vistaCitas);
+        } catch (Exception ex) {
+            Logger.getLogger(Citas.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }//GEN-LAST:event_radioCitasSiguientesActionPerformed
 
 
@@ -496,6 +508,7 @@ public class Citas extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JRadioButton radioCitasHoy;
+    private javax.swing.JRadioButton radioCitasManiana;
     private javax.swing.JRadioButton radioCitasSiguientes;
     private javax.swing.JTable tablaCitas;
     // End of variables declaration//GEN-END:variables

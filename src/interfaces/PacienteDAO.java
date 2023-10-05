@@ -18,4 +18,10 @@ public interface PacienteDAO {
 
     public List<Paciente> listar() throws Exception;
     
+    public void eliminar(String idPaciente);
+    
+    public void actualizar (Paciente paciente);
+    
+    public List<Paciente> buscar (String paciente);
+    
 }
